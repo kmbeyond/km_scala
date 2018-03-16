@@ -20,7 +20,8 @@ object SparkReadTextFileUDFTransform {
     //set new runtime options
     spark.conf.set("spark.sql.shuffle.partitions", 6)
     spark.conf.set("spark.executor.memory", "2g")
-
+    val sc = spark.sparkContext
+    sc.setLogLevel("ERROR")
 
     val filepath = "/home/kiran/km/km_hadoop/Projects_praveen_r/Projects/BDHS_Projects/Project for submission/Project 1/Project 1_dataset_bank-full (2).csv"
 

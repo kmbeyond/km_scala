@@ -21,6 +21,8 @@ object SparkRegTempTableQueryHive {
     //set new runtime options
     spark.conf.set("spark.sql.shuffle.partitions", 6)
     spark.conf.set("spark.executor.memory", "2g")
+    val sc = spark.sparkContext
+    sc.setLogLevel("ERROR")
 
     val filepath = "/home/kiran/km/km_hadoop/data/data_scala_txns"
     val fileOptions = Map(("header" -> "false"), ("delimiter" -> "\\t")) //, ("inferSchema", "false") )

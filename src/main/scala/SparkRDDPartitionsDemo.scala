@@ -1,3 +1,6 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import org.apache.spark.sql.SparkSession
 
 /**
@@ -16,7 +19,7 @@ object SparkRDDPartitionsDemo {
 
     spark.conf.set("spark.executor.memory", "2g")
     val sc = spark.sparkContext
-    sc.setLogLevel("INFO")
+    sc.setLogLevel("ERROR")
 
     val a = sc.parallelize(1 to 99999, 10)
 
@@ -30,8 +33,13 @@ object SparkRDDPartitionsDemo {
     })
 
     println("Get total of all...")
-    println("Using Map....")
+    println("Using Map....start: "+getDT())
+    val timeStart = System.nanoTime()
     a.map(x => (1,x)).reduceByKey(_+_).foreach(println)
+    val timeEnd = System.nanoTime()
+    println("Using Map....end. Time diff: "+ ( timeEnd-timeStart) +" ns")
+    println("Using Map....end. Time diff: "+ ( timeEnd-timeStart)/1000 +" micro sec")
+    println("Using Map....end. Time diff: "+ ( timeEnd-timeStart)/1e3 +" micro sec")
 
     println("Using MapPartitions....")
     def addMap(numbers: Iterator[Int]) : Iterator[Int] = {
@@ -45,6 +53,15 @@ object SparkRDDPartitionsDemo {
      a.mapPartitions(addMap).map(x => (1,x)).reduceByKey(_+_).foreach(println)
 
 
+
+  }
+  def getDT(): String ={
+
+    val dateFormatter = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss")
+    return dateFormatter.format(new Date())
+
+    //val today = Calendar.getInstance.getTime
+    //return dateFormatter.format(today)
 
   }
 }

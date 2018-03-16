@@ -21,7 +21,8 @@ object SparkReadCSVtoSchema {
       .getOrCreate
 
     spark.conf.set("spark.executor.memory", "2g")
-
+    val sc = spark.sparkContext
+    sc.setLogLevel("ERROR")
 
     val schema_txns =
       StructType(
@@ -34,7 +35,7 @@ object SparkReadCSVtoSchema {
     val fileOptions = Map(("header" -> "false"), ("delimiter" -> ",")) //, ("inferSchema", "false") )
     val lines = spark.read.options(fileOptions).
       schema(schema_txns).
-      csv("/home/kiran/km/km_hadoop/data/data_txns_cust.csv")
+      csv("/home/kiran/km/km_big_data/data/data_txns_cust.csv")
 
     lines.printSchema()
     lines.show(5)

@@ -15,6 +15,8 @@ object SparkWordCount {
     //.set("spark.driver.allowMultipleContexts", "true")
 
     val sc = new SparkContext(conf)
+    sc.setLogLevel("ERROR")
+
     val filepath = "/home/kiran/km/km_hadoop/data/data_wordcount"
 
     //function to remove special characters

@@ -16,8 +16,9 @@ object SparkRankProductsByPrice {
     //.set("spark.driver.allowMultipleContexts", "true")
 
     val sc = new SparkContext(conf)
+    sc.setLogLevel("ERROR")
 
-    val fileData = sc.textFile("/home/kiran/km/km_hadoop/data/products/")
+    val fileData = sc.textFile("/home/kiran/km/km_big_data/data/products/")
 
     //Check valid records
     val keyMapCounts = fileData.map(x => x.split(","))
@@ -33,6 +34,7 @@ object SparkRankProductsByPrice {
       .filter(x => x._2 < 10)   //top 10
       .map(x => (x._2+1, x._1._2))
       .flatMapValues(x=>x)
+      //.saveAsTextFile(args(0))
 
     keyMapValid.foreach(println)
   }

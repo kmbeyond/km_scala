@@ -18,7 +18,7 @@ object SparkWordCountByPartition {
 
     spark.conf.set("spark.executor.memory", "2g")
     val sc = spark.sparkContext
-    sc.setLogLevel("INFO")
+    sc.setLogLevel("ERROR")
 
     val filepath = "/home/kiran/km/km_hadoop/data/data_wordcount"
 

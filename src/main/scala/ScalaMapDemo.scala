@@ -15,8 +15,7 @@ object ScalaMapDemo {
     if( !colors.isEmpty )
       println( "colors is NOT empty." )
 
-    if(nums.isEmpty)
-      println( "nums is empty " + nums.isEmpty )
+    println( "nums is empty " + nums.isEmpty )
 
     println( "---------")
     println( "**** PRINT ALL ELEMENTS using foreach{}:")
@@ -44,6 +43,8 @@ object ScalaMapDemo {
       println("Red key does not exist")
     }
 
+    //get() with non-existing key throws exception; so use getOrElse()
+    println("A non-existing key:"  + colors4.getOrElse("orange", "Null"));
 
 
   }

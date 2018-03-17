@@ -1,13 +1,19 @@
 /**
   * Created by kiran on 2/6/17.
+  * Description:
+  *   The program gives a report of total sale quantity per a time period & product
+  * Input/Source data format: (txn_no,txn_dt,mem_num,store_id,sku_id,qty,paid): 1000000003,2017-06-01 08:00:00,1345671,S876,4685,2,3.98
+  * Output/Report: txn_dt, sku_id, qty_total
+  *   2017-06-01 08:00:00,3245,2
+  *   2017-06-01 08:00:00,4685,7
   *
-  * Test:
+  * Steps:
   * 1. Start zookeeper service
   * 2. Start kafka broker(server) at port 9092 ($KAFHA_HOME/config/server.properties)
   * 3. Create Kafka topic "txnstopic" if not existing.
   * 4. Start Kafka producer
   * 5. Run the program
-  * 6. Send sample message (txn_no,txn_dt,mem_num,store_id,sku_id,qty,paid): 1000000003,2017-06-01 08:00:00,1345671,S876,4685,2,3.98
+  * 6. Send sample message
   * 7. See the files on hive warehouse: prod_by_qty
   */
 
@@ -43,6 +49,8 @@ object SparkStreamKafkaTopicDemo {
       .appName("Spark Streaming data from Kafka")
       .getOrCreate()
 
+    spark.sparkContext.setLogLevel("ERROR")
+
     //spark.conf.getAll.mkString("\n").foreach(print)
 
     //val ssc = new StreamingContext(spark.sparkContext.getConf, Seconds(5))
@@ -73,7 +81,7 @@ object SparkStreamKafkaTopicDemo {
       ,"spark.streaming.kafka.maxRatePerPartition" -> ""
     )
     val topicsSet: Set[String] = "txnstopic".split(",").map(_.trim).toSet
-    val topicsArray = "txnstopic".split(",")
+    //val topicsArray = "txnstopic".split(",")
 
 
     val messages: InputDStream[(String, String)] = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
@@ -96,8 +104,11 @@ object SparkStreamKafkaTopicDemo {
         .map(x => x._1+","+x._2)
 
       //print("Partitions count: "+x.partitions.length)
-      print("Total rows count: " + rdd.count())
-      print("Result rows count:" + prodSalesTotal.count())
+      println("Total rows count: " + rdd.count())
+      rdd.take(15).foreach(println)
+      println("Result rows count:" + prodSalesTotal.count())
+      prodSalesTotal.take(15).foreach(println)
+
       /*
       // Below function call will save the data into HDFS
       if(prodSalesTotal.count()>0)

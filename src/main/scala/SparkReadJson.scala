@@ -25,7 +25,7 @@ object SparkReadJson {
     spark.conf.set("spark.executor.memory", "2g")
 val sqlContext = spark.sqlContext
 
-    val lines1 = spark.read.json("/home/kiran/km/km_hadoop/data/data_nested_struct_col.json")
+    val lines1 = spark.read.json("/home/kiran/km/km_big_data/data/data_nested_struct_col.json")
     //Sample: {"id":1,"nested_col": {"key1": "1.1", "key2": ["1.21", "1.22"], "key3": {"key3_1": "1.31", "key3_2": "1.32"}}}
     //nested_col is struct with 3 columns (key1 is string, key2 is Array() and key3 is struct)
     lines1.show(false)
@@ -35,7 +35,7 @@ val sqlContext = spark.sqlContext
     //lines2.withColumn("a.b.c", lines2("a.b.c")).show()
 
     println("After changing column type...")
-    val nestedCol = lines1.withColumn("id", lines1("id").cast(IntegerType)).
+    val nestedCol = lines1.withColumn("id", lines1("id").cast(IntegerType)).//Can use cast("int")
       withColumn("nested_col", struct(lines1("nested_col.key1").cast(FloatType).as("key1"),
                                        lines1("nested_col.key2"),
                                         struct(lines1("nested_col.key3.key3_1").cast(FloatType).as("key3_1"),

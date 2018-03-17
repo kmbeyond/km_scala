@@ -40,8 +40,11 @@ object SparkReadCSVtoSchema {
     lines.printSchema()
     lines.show(5)
 
-    lines.withColumn("cust_id", lines("cust_id").cast("int")).printSchema()
-    lines.show(5)
+    var lines2 = lines.withColumn("cust_id", lines("cust_id").cast("int")) //.printSchema()
+    lines2.printSchema()
+
+    var lines3 = lines.withColumn("cust_id", lines("cust_id").cast(IntegerType)) //.printSchema()
+    lines3.printSchema()
 
   }
 }

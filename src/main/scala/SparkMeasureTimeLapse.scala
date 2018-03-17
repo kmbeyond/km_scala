@@ -23,21 +23,21 @@ object SparkMeasureTimeLapse {
     println("Read csv ... into RDD")
     var timeStartSec = DateTime.now()
     var timeStart = System.nanoTime()
-    val dataRows = sc.textFile("/home/kiran/km/km_big_data/data/data_year_max_temp.csv").
-      map(line => line.split(",")) //.map(_.trim))
-    val header = dataRows.first
-    val data = dataRows.filter(_(0) != header(0))
-    val filtered = data.filter(rec => (rec(2) != "9999" && rec(2).matches("[01459]")))
-    val tuples = filtered.map(rec => (rec(0).toInt, rec(1).toInt))
-    var maxTemps = tuples.reduceByKey((a, b) => Math.max(a, b))
+    val dataRows = sc.textFile("/home/kiran/km/km_big_data/data/data_year_max_temp.csv")
+    val maxTemps = dataRows.map(x => x.split(',')).
+      filter(x=> (x(0) !="year" && x(2) != "9999" && x(2).matches("[01459]"))).
+      map(x => (x(0).toInt, x(1).toInt)).
+      reduceByKey((x,y) => (if(x>y) x else y)).
+      map(x => (x._1,x._2))
+
     //maxTemps.foreach(println(_))
     var timeEndSec = DateTime.now()
     var timeEnd = System.nanoTime()
     println("Elapsed time: " + getElapsedSeconds(timeStartSec, timeEndSec) + " sec")
-    println("Elapsed Time (micro sec): "+ ( timeEnd-timeStart)/1e3 +" micro sec")
+    println("Elapsed Time (millisec): "+ ( timeEnd-timeStart)/1e9 +" sec")
 
     //Using DF
-    print("Read csv ... into dataframe\n")
+    println("Read csv ... into dataframe")
     timeStart = System.nanoTime()
     timeStartSec = DateTime.now()
     val schemaTemp =
@@ -51,8 +51,8 @@ object SparkMeasureTimeLapse {
       load("/home/kiran/km/km_big_data/data/data_year_max_temp.csv")
 
     import org.apache.spark.sql.functions.{max}
-    val dfCSVTxns2 = dfCSVTxns.filter(dfCSVTxns("quality") !== "9999") // && $"quality" !== "NA") //"&&", "and" NOT WORKING
-    val dfCSVTxns3 = dfCSVTxns2.groupBy(dfCSVTxns2("year")).agg(max("max_temp").alias("max_temp"))
+    val dfMaxTemps = dfCSVTxns.filter(dfCSVTxns("quality") !== "9999"). // && $"quality" !== "NA") //"&&", "and" NOT WORKING
+      groupBy(dfCSVTxns("year")).agg(max("max_temp").alias("max_temp"))
 
     //import org.apache.spark.sql.functions._ //for udf()
     //val toInt    = udf[Int, String]( _.toInt)
@@ -62,17 +62,17 @@ object SparkMeasureTimeLapse {
     timeEndSec = DateTime.now()
     timeEnd = System.nanoTime()
     println("Elapsed time: " + getElapsedSeconds(timeStartSec, timeEndSec) + " sec")
-    println("Elapsed Time (micro sec): "+ ( timeEnd-timeStart)/1e3 +" micro sec")
+    println("Elapsed Time (milli sec): "+ ( timeEnd-timeStart)/1e9 +" sec")
 
     //Using SparkSQL
-    print("Read csv ... SQL way into dataframe\n")
+    println("Read csv ... SQL way into dataframe")
     timeStartSec = DateTime.now()
     timeStart = System.nanoTime()
     val dfSQLTxns = spark.sql("SELECT * FROM csv.`/home/kiran/km/km_big_data/data/data_year_max_temp.csv`")
     timeEndSec = DateTime.now()
     timeEnd = System.nanoTime()
     print("Elapsed time: " + getElapsedSeconds(timeStartSec, timeEndSec) + " sec\n")
-    println("Elapsed Time (micro sec): "+ ( timeEnd-timeStart)/1e3 +" micro sec")
+    println("Elapsed Time (milli sec): "+ ( timeEnd-timeStart)/1e9 +" sec")
 
   }
 

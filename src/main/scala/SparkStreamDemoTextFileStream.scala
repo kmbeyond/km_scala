@@ -41,7 +41,7 @@ object SparkStreamDemoTextFileStream {
       map(x => (x,1)).
       reduceByKey(_+_)
 
-    print("File Data for each stream (word, 1) is printing..")
+    println("File Data for each stream (word, 1) is printing..")
     wordCounts.print()
 
     ssc.start()

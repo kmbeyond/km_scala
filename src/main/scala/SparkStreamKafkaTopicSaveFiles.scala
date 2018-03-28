@@ -5,7 +5,7 @@ import kafka.serializer.StringDecoder
 import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import org.apache.spark.streaming.kafka.KafkaUtils
+//import org.apache.spark.streaming.kafka.KafkaUtils //KM:Commented due to older version
 //import org.apache.spark.streaming.kafka._
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark._
@@ -21,6 +21,9 @@ import org.apache.spark.rdd.WholeTextFileRDD
   * This program gets data from stream & writes to a directory based on datetime.
   * Run the merge command to copy all that data to a destination directory:
   * $ hdfs dfs -getmerge /home/kiran/km/km_hadoop_op/op_spark/op_streaming/2017*0/pa*  /home/kiran/km/km_hadoop_op/op_spark/op_streaming/logs_2017-02-17/logs2.txt
+  *
+  * Changes:
+  * KM: Commented due to this runs using older version of Kafka
   */
 
 object SparkStreamKafkaTopicSaveFiles {
@@ -73,6 +76,7 @@ object SparkStreamKafkaTopicSaveFiles {
     //}
     //streams.foreach(println)
 
+/* //KM:Commented due to older version
     //val strm = KafkaUtils.createStream(ssc, kafkaParams, Map(inputTopic -> 1), StorageLevel.MEMORY_ONLY_SER)
     val strm = KafkaUtils.createStream(ssc, "km-lnv300-lmint:2181", "test", Map(inputTopic -> 1))
     //print stream data
@@ -113,6 +117,7 @@ object SparkStreamKafkaTopicSaveFiles {
   }
 */
 
+    /*
     //Real-time analytics
     strm.foreachRDD { rdd =>
       rdd.map(x => x._2.split(",")).
@@ -120,9 +125,10 @@ object SparkStreamKafkaTopicSaveFiles {
           reduceByKey(_ + _).
           foreach(println)
     }
-
+*/
     ssc.start()
 
     ssc.awaitTermination()
+*/ //KM:Commented due to older version
   }
 }

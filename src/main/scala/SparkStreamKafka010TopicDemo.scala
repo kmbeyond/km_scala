@@ -94,8 +94,10 @@ object SparkStreamKafka010TopicDemo {
     stream.foreachRDD(
       rdd =>  {
         val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
-        //val o: OffsetRange = offsetRanges(TaskContext.get.partitionId)
-        //println(s"${o.topic} ${o.partition} ${o.fromOffset} ${o.untilOffset}")
+
+        for (o <- offsetRanges) {
+          println(s"Topic=${o.topic}; Partition=${o.partition}; Offset (${o.fromOffset} - ${o.untilOffset})")
+        }
 
         rdd.foreach(println)
 

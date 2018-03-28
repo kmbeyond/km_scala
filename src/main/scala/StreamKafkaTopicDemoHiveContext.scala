@@ -4,7 +4,7 @@ import kafka.serializer.StringDecoder
 import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import org.apache.spark.streaming.kafka.KafkaUtils
+//import org.apache.spark.streaming.kafka.KafkaUtils
 //import org.apache.spark.streaming.kafka._
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark._
@@ -89,7 +89,7 @@ object StreamKafkaTopicDemoHiveContext {
     //streams.foreach(println)
 
     //val str = KafkaUtils.createStream(ssc, kafkaParams, Map(inputTopic -> 1), StorageLevel.MEMORY_ONLY_SER)
-    val str = KafkaUtils.createStream(ssc, "km-lnv300-lmint:2181", "test", Map(inputTopic -> 1))
+    //val str = KafkaUtils.createStream(ssc, "km-lnv300-lmint:2181", "test", Map(inputTopic -> 1))
 
     //val str = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc,kafkaParams,inputTopic)
     //val unifiedStream = ssc.union(streams)
@@ -115,7 +115,7 @@ object StreamKafkaTopicDemoHiveContext {
         }
       }*/
 
-    str.map (rec => insertTxn(rec._2) ).print()
+    //str.map (rec => insertTxn(rec._2) ).print()
 
     /*
     str.foreachRDD { rdd =>
@@ -124,8 +124,8 @@ object StreamKafkaTopicDemoHiveContext {
 */
 
 
-    ssc.start()
+    //ssc.start()
 
-    ssc.awaitTermination()
+    //ssc.awaitTermination()
   }
 }

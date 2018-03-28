@@ -59,7 +59,9 @@ libraryDependencies += "org.apache.spark" % "spark-hive_2.11" % "2.0.0"
 //libraryDependencies += "org.apache.kafka" % "kafka-clients" % "0.10.0.0"
 
 // https://mvnrepository.com/artifact/org.apache.spark/spark-streaming-kafka_2.11
-libraryDependencies += "org.apache.spark" % "spark-streaming-kafka_2.11" % "1.6.0"
+//libraryDependencies += "org.apache.spark" % "spark-streaming-kafka_2.11" % "1.6.0"
+// https://mvnrepository.com/artifact/org.apache.spark/spark-streaming-kafka-0-10
+libraryDependencies += "org.apache.spark" %% "spark-streaming-kafka-0-10" % "2.0.0"
 
 // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
 //libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.7"
@@ -87,22 +89,37 @@ libraryDependencies += "org.apache.spark" % "spark-streaming-kafka_2.11" % "1.6.
 
 //**********************Hive END*************
 
+//******************HBase******************
+// https://mvnrepository.com/artifact/org.apache.hbase/hbase
+libraryDependencies += "org.apache.hbase" % "hbase" % "1.2.4"
 
+// https://mvnrepository.com/artifact/org.apache.hbase/hbase-server
+libraryDependencies += "org.apache.hbase" % "hbase-server" % "1.2.4"
+
+
+// https://mvnrepository.com/artifact/org.apache.hbase/hbase-common
+libraryDependencies += "org.apache.hbase" % "hbase-common" % "1.2.4"
+
+//******************HBase END**************
+
+/*
 assemblyMergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
-{
-  case PathList("javax", "servlet", xs @ _*) => MergeStrategy.last
-  case PathList("javax", "activation", xs @ _*) => MergeStrategy.last
-  case PathList("org", "apache", xs @ _*) => MergeStrategy.last
-  case PathList("com", "google", xs @ _*) => MergeStrategy.last
-  case PathList("com", "objenesis", xs @ _*) => MergeStrategy.last
-  case PathList("com", "datanucleus", xs @ _*) => MergeStrategy.last
-  case PathList("com", "yammer", xs @ _*) => MergeStrategy.last
-  case "about.html" => MergeStrategy.rename
-  case "META-INF/ECLIPSEF.RSA" => MergeStrategy.last
-  case "META-INF/mailcap" => MergeStrategy.last
-  case "META-INF/mimetypes.default" => MergeStrategy.last
-  case "plugin.properties" => MergeStrategy.last
-  case "log4j.properties" => MergeStrategy.last
-  case x => old(x)
+  {
+    case PathList("javax", "servlet", xs @ _*) => MergeStrategy.last
+    case PathList("javax", "activation", xs @ _*) => MergeStrategy.last
+    case PathList("org", "apache", xs @ _*) => MergeStrategy.last
+    case PathList("com", "google", xs @ _*) => MergeStrategy.last
+    case PathList("com", "objenesis", xs @ _*) => MergeStrategy.last
+    case PathList("com", "datanucleus", xs @ _*) => MergeStrategy.last
+    case PathList("com", "yammer", xs @ _*) => MergeStrategy.last
+    case "about.html" => MergeStrategy.rename
+    case "META-INF/ECLIPSEF.RSA" => MergeStrategy.last
+    case "META-INF/mailcap" => MergeStrategy.last
+    case "META-INF/mimetypes.default" => MergeStrategy.last
+    case "plugin.properties" => MergeStrategy.last
+    case "log4j.properties" => MergeStrategy.last
+    case x => old(x)
+  }
 }
-}
+
+*/

@@ -7,8 +7,13 @@ object SparkReadMultipleFiles {
 
   def main(args: Array[String]) {
 
+    val filePathSrc = "C:\\km\\as_AIA\\test_sample"
+            //"/home/kiran/km/km_hadoop/data/"
+    val filePathDest = "C:\\km\\as_AIA\\test_sample\\Spark_output_001"
+            //"/home/kiran/km/km_hadoop/data/fileslist"
     val spark = SparkSession
       .builder()
+      .config("spark.sql.warehouse.dir", "file:///c:/tmp/spark-warehouse")
       .master("local")
       .appName("SQLContext Read CSV Demo")
       .getOrCreate
@@ -17,7 +22,7 @@ object SparkReadMultipleFiles {
     val sc = spark.sparkContext
     sc.setLogLevel("INFO")
 
-    val data = sc.wholeTextFiles("/home/kiran/km/km_hadoop/data/", 10)
+    val data = sc.wholeTextFiles(filePathSrc, 10)
 
     //This returns contents of each file as one record (same as number of files)
     data.map{ case (filename, cont) => cont}.take(1)
@@ -28,7 +33,10 @@ object SparkReadMultipleFiles {
       zipWithIndex().
       map(x => (x._2+1, x._1)).
       sortByKey()
-    files.saveAsTextFile("/home/kiran/km/km_hadoop/data/fileslist")
+
+    files.collect().foreach(println)
+
+    files.saveAsTextFile(filePathDest)
 
     //Get an RDD of all lines
     val lines = data.flatMap{ case (filename, cont) => cont.split("\n") }

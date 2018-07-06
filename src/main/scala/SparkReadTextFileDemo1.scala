@@ -38,6 +38,9 @@ object SparkReadTextFileDemo1 {
                   x(11),x(12),x(13), x(14), x(15), x(16), x(17), x(18)))
       .foreach(println)
 
+   //reads csv directly to DF
+   val df = dataRDD.toDF()
+   df.show(10, false)
 
 
 /* //City temps data

@@ -16,8 +16,9 @@ object SparkReadTextFileDemo1 {
 
     //Sample data as in List()
     val filePathSrc = "C:\\km\\as_AIA\\test_sample"
-          //"/home/kiran/km/km_hadoop/data/data_city_temps"
-
+          //"file:///home/kiran/km/km_hadoop/data/data_city_temps"
+          //"hdfs:///user/kiran/data_user.csv"
+   
     val spark = SparkSession
       .builder()
       .config("spark.sql.warehouse.dir", "file:///c:/tmp/spark-warehouse")

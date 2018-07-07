@@ -62,8 +62,13 @@ object SparkReadTextFileDemo1 {
     //import org.apache.spark.sql.functions._
 
     println("Using csv read................")
-    val csvRDD = spark.read.options(Map(("header" -> "true"), ("delimiter" -> ","))).csv(filePathSrc)
+    val csvRDD = spark.read
+      .options(Map(("header" -> "true"), ("delimiter" -> ",")))
+      .csv(filePathSrc)
+    
     val csvDF = csvRDD.toDF() //"city", "avgLow", "avgHigh")
+      //.filter(col("carriername") === "ABC")
+      .filter(col("carriername").===("ABC"))
       .withColumn("Premium2", regexp_replace(col("Premium"), "\\$", ""))
       .withColumn("Premium3", regexp_replace(col("Premium2"), ",", ""))
         //.createOrReplaceTempView("mytempTable")
@@ -77,4 +82,5 @@ object SparkReadTextFileDemo1 {
 
   }
 }
+
 

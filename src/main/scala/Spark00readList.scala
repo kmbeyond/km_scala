@@ -4,7 +4,7 @@ import org.apache.spark.sql.types._
 /**
   * Created by kiran on 2/8/17.
   */
-object Spark00readList {
+object Spark00ReadList {
 
   case class CityTemps(city: String, avgLow: Float, avgHigh: Float)
 

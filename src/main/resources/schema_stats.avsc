@@ -1,0 +1,60 @@
+{
+  "type": "record",
+  "name": "VisionStats",
+  "fields": [
+    {
+      "name": "endpoint_id","type": "int"
+    },
+	{
+		"name": "duration",
+		"type": {
+			"type": "record",
+			"name": "duration",
+			"fields": [
+				{
+				  "name": "mean","type": "double","default": 0
+				},
+				{
+				  "name": "stddev","type": "double","default": 0
+				}
+				]
+		}
+	},
+	{
+		"name": "errors",
+		"type": {
+			"type": "record",
+			"name": "errors",
+			"fields": [
+					{
+					  "name": "mean","type": "double","default": 0
+					},
+					{
+					  "name": "stddev","type": "double","default": 0
+					}
+			]
+		}
+	},
+	{
+      "name": "create_timestamp",
+      "type": {
+       "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "default": 0
+    }
+  ]
+}
+
+--single line:
+{"type":"record","name":"VisionStats","namespace":"com.allstate.bigdatacoe.vision.events","fields":[
+{"name":"endpoint_id","type":"int"},
+{"name":"duration","type":{"type":"record","name":"duration","fields":[{"name":"mean","type":"double","default":0},{"name":"stddev","type":"double","default":0}]}},
+{"name":"errors","type":{"type":"record","name":"errors","fields":[{"name":"mean","type":"double","default":0},{"name":"stddev","type":"double","default":0}]}},
+{"name":"create_timestamp","type":{"type":"long","logicalType":"timestamp-millis"},"default":0}
+]}
+
+curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data '{"schema":"{\"type\":\"record\",\"name\":\"VisionStats\",\"fields\":[{\"name\":\"endpoint_id\",\"type\":\"int\"},{\"name\":\"duration\",\"type\":{\"type\":\"record\",\"name\":\"duration\",\"fields\":[{\"name\":\"mean\",\"type\":\"double\",\"default\":0},{\"name\":\"stddev\",\"type\":\"double\",\"default\":0}]}},{\"name\":\"errors\",\"type\":{\"type\":\"record\",\"name\":\"errors\",\"fields\":[{\"name\":\"mean\",\"type\":\"double\",\"default\":0},{\"name\":\"stddev\",\"type\":\"double\",\"default\":0}]}},{\"name\":\"create_timestamp\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"},\"default\":0}]}"}' http://lxe0961.allstate.com:8081/subjects/rtalab.allstate.is.vision.alerts_kiran-value/versions
+
+Sample message:
+{"endpoint_id": 999999, "duration": {"mean": 3998.9591836734694, "stddev": 573.3248877429411}, "errors": {"mean": 3998.9591836734694, "stddev": 573.3248877429411}, "create_timestamp": 1533067940737}

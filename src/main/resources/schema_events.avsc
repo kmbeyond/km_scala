@@ -1,0 +1,43 @@
+{
+	"type": "record",
+	"name": "spanEvent",
+	"fields": [{
+		"name": "endpoint_id",
+		"type": "int"
+	}, {
+		"name": "application_id",
+		"type": "long",
+		"default": 0
+	}, {
+		"name": "host_id",
+		"type": "int",
+		"default": 0
+	}, {
+		"name": "domain_id",
+		"type": "int",
+		"default": 0
+	}, {
+		"name": "method",
+		"type": ["string", "null"],
+		"default": "null"
+	}, {
+		"name": "duration",
+		"type": "int",
+		"default": 0
+	}, {
+		"name": "status_code",
+		"type": "int",
+		"default": 0
+	}, {
+		"name": "error_occurred",
+		"type": "boolean",
+		"default": false
+	}, {
+		"name": "span_created_at",
+		"type": {
+			"type": "long",
+			"logicalType": "timestamp-millis"
+		},
+		"default": 0
+	}]
+}

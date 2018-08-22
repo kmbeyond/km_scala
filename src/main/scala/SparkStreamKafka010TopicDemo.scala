@@ -25,7 +25,7 @@ import java.util.Date
 import org.apache.spark.sql.types.{FloatType, IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{Row, SQLContext, SparkSession}
 import org.apache.spark.streaming.dstream.InputDStream
-import kafka.serializer.StringDecoder
+//import kafka.serializer.StringDecoder
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent

@@ -5,6 +5,7 @@ lazy val commonSettings = Seq(
   version := "0.1.0-SNAPSHOT",
   scalaVersion := "2.11.8"
 )
+val sparkVersion = "2.3.0"
 
 lazy val root = (project in file(".")) //.settings(commonSettings: _*).
   .settings(
@@ -31,6 +32,11 @@ excludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
   cp filter {x => x.data.getName.matches("sbt.*") || x.data.getName.matches(".*macros.*")}
 }
 
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.7"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.7"
+dependencyOverrides += "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.8.7"
+//dependencyOverrides += "com.databricks" % "spark-avro_2.11" % "4.0.0"
+
 //assemblySettings
 
 assemblyJarName in assembly := "spark-assembly.jar"
@@ -39,38 +45,29 @@ assemblyJarName in assembly := "spark-assembly.jar"
 //libraryDependencies += "org.scala-sbt" % "sbt" % "1.0.0-M4"
 
 
-// https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.11
-libraryDependencies += "org.apache.spark" % "spark-core_2.11" % "2.0.0"
+//libraryDependencies += "org.apache.spark" % "spark-core_2.11" % "2.0.0"
+libraryDependencies += "org.apache.spark" % "spark-core_2.11" % sparkVersion
 
-// https://mvnrepository.com/artifact/org.apache.spark/spark-streaming_2.11
-libraryDependencies += "org.apache.spark" % "spark-streaming_2.11" % "2.0.0"
+//libraryDependencies += "org.apache.spark" % "spark-streaming_2.11" % "2.0.0"
+libraryDependencies += "org.apache.spark" % "spark-streaming_2.11" % sparkVersion
 
-// https://mvnrepository.com/artifact/org.apache.spark/spark-streaming-twitter_2.11
-//libraryDependencies += "org.apache.spark" % "spark-streaming-twitter_2.11" % "1.6.1"
-
-// https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients
 libraryDependencies += "org.apache.kafka" % "kafka-clients" % "0.10.0.0"
 
-// https://mvnrepository.com/artifact/org.apache.spark/spark-hive_2.11
-libraryDependencies += "org.apache.spark" % "spark-hive_2.11" % "2.0.0"
-
+//libraryDependencies += "org.apache.spark" % "spark-hive_2.11" % "2.0.0"
+libraryDependencies += "org.apache.spark" % "spark-hive_2.11" % sparkVersion
 
 // https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients
 //libraryDependencies += "org.apache.kafka" % "kafka-clients" % "0.10.0.0"
 
-// https://mvnrepository.com/artifact/org.apache.spark/spark-streaming-kafka_2.11
 //libraryDependencies += "org.apache.spark" % "spark-streaming-kafka_2.11" % "1.6.0"
-// https://mvnrepository.com/artifact/org.apache.spark/spark-streaming-kafka-0-10
-libraryDependencies += "org.apache.spark" %% "spark-streaming-kafka-0-10" % "2.0.0"
+//libraryDependencies += "org.apache.spark" %% "spark-streaming-kafka-0-10" % "2.0.0"
+libraryDependencies += "org.apache.spark" %% "spark-streaming-kafka-0-10" % sparkVersion
 
 // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
 //libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.7"
 
 //-------NOT NEEDED ----Changing to use older version 1.3.1 for org.apache.spark.sql.SQLContext
-// https://mvnrepository.com/artifact/org.apache.spark/spark-sql_2.11
 //libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % "2.1.0"
-
-
 
 // https://mvnrepository.com/artifact/com.databricks/spark-csv_2.10
 //libraryDependencies += "com.databricks" % "spark-csv_2.10" % "1.5.0"
@@ -79,13 +76,11 @@ libraryDependencies += "org.apache.spark" %% "spark-streaming-kafka-0-10" % "2.0
 // https://mvnrepository.com/artifact/org.apache.hive/hive-common
 //libraryDependencies += "org.apache.hive" % "hive-common" % "2.0.0"
 
-
 // https://mvnrepository.com/artifact/org.apache.hive/hive-exec
 //libraryDependencies += "org.apache.hive" % "hive-exec" % "2.0.0"
 
 // https://mvnrepository.com/artifact/org.apache.hive/hive-metastore
 //libraryDependencies += "org.apache.hive" % "hive-metastore" % "2.0.0"
-
 
 //**********************Hive END*************
 
@@ -101,6 +96,12 @@ libraryDependencies += "org.apache.hbase" % "hbase-server" % "1.2.4"
 libraryDependencies += "org.apache.hbase" % "hbase-common" % "1.2.4"
 
 //******************HBase END**************
+
+libraryDependencies += "io.confluent" % "kafka-avro-serializer" % "4.0.0"
+
+libraryDependencies += "com.googlecode.json-simple" % "json-simple" % "1.1.1"
+libraryDependencies += "com.databricks" %% "spark-avro" % "4.0.0"
+libraryDependencies += "net.jpountz.lz4" % "lz4" % "1.3.0"
 
 /*
 assemblyMergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
@@ -118,8 +119,11 @@ assemblyMergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
     case "META-INF/mimetypes.default" => MergeStrategy.last
     case "plugin.properties" => MergeStrategy.last
     case "log4j.properties" => MergeStrategy.last
-    case x => old(x)
+    case x =>
+      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      oldStrategy(x)
   }
 }
 
+*/
 */

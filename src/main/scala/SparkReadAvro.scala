@@ -10,7 +10,8 @@ object SparkReadAvro {
       .config("spark.sql.warehouse.dir", "file:///c:/tmp/spark-warehouse")
       .config("spark.executor.memory", "2g")
       .config("spark.yarn.executor.memoryOverhead", "10g")
-      .config("spark.sql.avro.compression.codec", "snappy")
+      //.config("spark.sql.avro.compression.codec", "snappy")
+      //.config("spark.io.compression.codec", "snappy") // using lz4 by default
       .master("local")
       .appName("Spark DF")
       .getOrCreate

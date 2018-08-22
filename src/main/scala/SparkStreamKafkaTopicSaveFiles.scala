@@ -1,7 +1,7 @@
 
 import java.lang.Exception
 
-import kafka.serializer.StringDecoder
+//import kafka.serializer.StringDecoder
 import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.streaming.{Seconds, StreamingContext}

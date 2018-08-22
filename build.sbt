@@ -14,6 +14,9 @@ lazy val root = (project in file(".")) //.settings(commonSettings: _*).
     //libraryDependencies += derby
   )
   .enablePlugins(AssemblyPlugin)
+
+lazy val excludeJars = ExclusionRule(organization = "net.jpountz.lz4", name = "lz4")
+
 /*
 lazy val utils = (project in file("utils")).
   settings(commonSettings: _*).
@@ -100,8 +103,9 @@ libraryDependencies += "org.apache.hbase" % "hbase-common" % "1.2.4"
 libraryDependencies += "io.confluent" % "kafka-avro-serializer" % "4.0.0"
 
 libraryDependencies += "com.googlecode.json-simple" % "json-simple" % "1.1.1"
-libraryDependencies += "com.databricks" %% "spark-avro" % "4.0.0"
+libraryDependencies += "com.databricks" % "spark-avro_2.11" % "4.0.0"
 libraryDependencies += "net.jpountz.lz4" % "lz4" % "1.3.0"
+
 
 /*
 assemblyMergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>

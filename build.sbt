@@ -126,4 +126,3 @@ assemblyMergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
 }
 
 */
-*/

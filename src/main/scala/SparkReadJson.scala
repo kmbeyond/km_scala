@@ -34,10 +34,10 @@ object SparkReadJson {
     import spark.implicits._
 
 //DIRECTLY READ AS JSON
-/*    val ds = spark.read.json(sJSONPath)
+    val ds = spark.read.json(sJSONPath)
     ds.show(false)
 
-    val ds2 = ds.withColumn("key", ds.col("clientTag.key"))
+    val ds2 = ds.withColumn("key", $"clientTag.key")
       .withColumn("contact_type", ds.col("contactPoint")("type"))
       .withColumn("contact_email", ds.col("contactPoint.email"))
       //.drop("contactPoint")
@@ -45,7 +45,7 @@ object SparkReadJson {
       .withColumn("contactPoint.valid", when(ds.col("contactPoint.email").contains("@") === true, "Y").otherwise("N"))
 
     ds2.show(false)
-*/
+
 
 
 //READ AS TEXT FILE & PROCESS AS JSON
@@ -65,3 +65,14 @@ object SparkReadJson {
       .show(false)
   }
 }
+
+
+
+/* Sample data:
+
+{"performCheck" : "N", "clientTag" :{"key":"111"}, "contactPoint": {"email":"abc@gmail.com", "type":"EML"}}
+{"performCheck" : "N", "clientTag" :{"key":"222"}, "contactPoint": {"email":"def@gmail.com", "type":"EML"}}
+{"performCheck" : "Y", "clientTag" :{"key":"333"}, "contactPoint": {"email":"ccc.com", "type":"EML"}}
+
+
+*/

@@ -1,5 +1,16 @@
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.types.{FloatType, TimestampType, LongType}
+import org.apache.spark.sql.types.{FloatType, TimestampType, LongType, DateType}
+
+/*
+
+pscp C:\Users\kmiry\.ivy2\cache\com.databricks\spark-avro_2.11\jars\spark-avro_2.11-4.0.0.jar kmiry@10.195.247.1:/home/kmiry/jars
+
+$ spark2-shell --jars /home/kmiry/jars/spark-avro_2.11-4.0.0.jar,/home/kmiry/jars/snappy-java-1.1.2.1.jar --conf spark.userClassspathFirst=true --conf spark.executor.extraClassPath="/home/kmiry/jars/snappy-java-1.1.2.1.jar" --conf "spark.io.compression.codec=snappy"
+
+scala> val eventsAvroDF = spark.read.format("com.databricks.spark.avro").load("hdfs:///user/kmiry/vision/raw")
+scala> eventsAvroDF.show(10, false)
+
+*/
 
 object SparkReadAvro {
 
@@ -30,12 +41,44 @@ object SparkReadAvro {
     //val sqlContext = spark.sqlContext.setConf("spark.sql.avro.compression.codec", "snappy") //uncompressed, snappy, deflate
     //val fileData = sqlContext.read.avro(sAvroPath)
 
-    val fileData = spark.read.format("com.databricks.spark.avro").load(sAvroPath)
-      .toDF("endpoint_id", "application_id", "host_id", "domain_id", "method", "duration", "status_code", "error_occurred", "span_created_at", "row_create_ts")
-      .withColumn("span_created_at_datetime", ($"span_created_at".cast(LongType)/1000000).cast(TimestampType))
-      .withColumn("row_create_ts_datetime", ($"row_create_ts".cast(LongType)/1000).cast(TimestampType))
+    //import spark.sqlContext.implicits._
+    //import org.apache.spark.sql.functions._
+    import org.apache.spark.sql.functions.rank
 
-    fileData.show(false)
+    val fileData = spark.read.format("com.databricks.spark.avro").load(sAvroPath)
+
+    val groupedDF = fileData.
+        toDF("endpoint_id", "application_id", "host_id", "domain_id", "method", "duration", "status_code", "error_occurred", "span_created_at", "row_create_ts").
+        withColumn("span_created_at_datetime", ($"span_created_at".cast(LongType)/1000000).cast(TimestampType)).drop("span_created_at").
+        withColumn("row_create_ts_datetime", ($"row_create_ts".cast(LongType)/1000).cast(TimestampType)).drop("row_create_ts").
+        withColumn("age_in_days", datediff(current_timestamp(), col("span_created_at_datetime"))).filter($"age_in_days" < 15).
+        withColumn("created_dt", $"span_created_at_datetime".cast(DateType)).
+        groupBy("created_dt", "endpoint_id").agg(count("endpoint_id").alias("endpoints_count"))
+
+    groupedDF.cache()
+
+    //groupedDF.printSchema
+    //root
+    //|-- created_dt: date (nullable = true)
+    //|-- endpoint_id: integer (nullable = true)
+    //|-- endpoints_count: long (nullable = false)
+
+
+//Rank() by created_dt & endpoint_id
+    //using Window
+    import org.apache.spark.sql.expressions.Window
+    val w_desc = Window.partitionBy($"created_dt").orderBy(desc("endpoints_count"))
+    val w_asc = Window.partitionBy($"created_dt").orderBy("endpoints_count")
+
+    groupedDF. //filter($"created_dt" === "2018-08-09").
+      withColumn("rank", rank().over(w_desc)).
+      withColumn("dense_rank", dense_rank().over(w_desc)).
+      withColumn("row_number", row_number().over(w_desc)).
+      filter($"row_number" <= 10).
+      //orderBy($"created_dt", desc("endpoints_count")).
+      orderBy($"created_dt", $"row_number").
+        show(100, false)
+
 
   }
 }

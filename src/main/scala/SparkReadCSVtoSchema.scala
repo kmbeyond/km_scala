@@ -1,7 +1,7 @@
 
 import org.apache.spark.sql.{SparkSession,SQLContext}
 import org.apache.spark.{SparkContext,SparkConf}
-import org.apache.spark.sql.types._
+
 import org.apache.spark.sql.Row
 /****** WORKING***
   * Created by kiran on 2/14/17.
@@ -24,26 +24,46 @@ object SparkReadCSVtoSchema {
     val sc = spark.sparkContext
     sc.setLogLevel("ERROR")
 
+    val csvPath = //"/home/kiran/km/km_big_data/data/data_txns_cust.csv"
+                  "C:\\km\\km_big_data\\data\\data_txns_cust.csv"
+
+//Read directly as csv with header
+    print("---Reading csv directly...")
+    val fileOptions1 = Map(("header" -> "true"), ("delimiter" -> ",")) //, ("inferSchema", "false") )
+    val csvLines = spark.
+      read.
+      options(fileOptions1).
+      csv(csvPath)
+
+    csvLines.printSchema()
+    csvLines.show()
+
+
+//Read with schema
+    print("---Reading using schema...")
+    import org.apache.spark.sql.types._
     val schema_txns =
       StructType(
-        StructField("txn_id", IntegerType, false) ::
-          StructField("cust_id", StringType, false) ::
-          StructField("prod_id", IntegerType, false) ::
-          StructField("qty", IntegerType, false) ::
-          StructField("amt", FloatType, false) :: Nil)
+        StructField("txn_id2", IntegerType, false) ::
+          StructField("cust_id2", StringType, false) ::
+          StructField("prod_id2", IntegerType, false) ::
+          StructField("qty2", IntegerType, false) ::
+          StructField("amt2", FloatType, false) :: Nil)
 
     val fileOptions = Map(("header" -> "false"), ("delimiter" -> ",")) //, ("inferSchema", "false") )
-    val lines = spark.read.options(fileOptions).
+    val lines = spark.
+      read.
+      options(fileOptions).
       schema(schema_txns).
-      csv("/home/kiran/km/km_big_data/data/data_txns_cust.csv")
+      csv(csvPath)
 
     lines.printSchema()
     lines.show(5)
 
-    var lines2 = lines.withColumn("cust_id", lines("cust_id").cast("int")) //.printSchema()
+    var lines2 = lines.withColumn("cust_id", lines("cust_id2").cast("int")) //.printSchema()
     lines2.printSchema()
 
-    var lines3 = lines.withColumn("cust_id", lines("cust_id").cast(IntegerType)) //.printSchema()
+    var lines3 = lines.withColumn("cust_id", lines("cust_id2").cast(IntegerType)) //.printSchema()
     lines3.printSchema()
 
   }

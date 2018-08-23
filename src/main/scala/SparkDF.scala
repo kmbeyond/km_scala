@@ -22,7 +22,7 @@ object SparkDF {
     //spark.conf.set("spark.executor.memory", "2g")
 
     val sc = spark.sparkContext
-    sc.setLogLevel("INFO")
+    sc.setLogLevel("ERROR")
 
     //val data = sc.textFile("/home/kiran/km/km_hadoop/data/data_customers.csv", 10)
     import spark.implicits._
@@ -34,7 +34,12 @@ object SparkDF {
     dataDF1.show(false)
 
     //Make RDD
-    val rdd = spark.sparkContext.makeRDD( List( ("item1", 1), ("item2", 0), ("item1", 0), ("item1", 1)))
+    val rddSC = spark.sparkContext.parallelize(valList)
+    rddSC.foreach(println)
+
+    rddSC.toDF("item", "count").show()
+
+    val rdd = spark.sparkContext.makeRDD( valList )
     rdd.foreach(println)
 
     //#2: Using RDD & createDataFrame

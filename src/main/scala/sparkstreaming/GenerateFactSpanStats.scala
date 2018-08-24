@@ -84,7 +84,7 @@ object GenerateFactSpanStats {
 
     consumeFactSpanEvents()
     val stats = generateStats(spark)
-    //stats.show(false)
+    //stats.show(1000, false)
     publishStats(spark, stats)
   }
 
@@ -162,36 +162,39 @@ object GenerateFactSpanStats {
         $"duration".cast(IntegerType).alias("duration"),
         $"status_code".cast(IntegerType).alias("status_code"),
         $"error_occurred".cast(BooleanType).alias("error_occurred"),
-        $"span_created_at".cast(TimestampType).alias("span_created_at")
+        ($"span_created_at".cast(LongType)/1000).cast(TimestampType).alias("span_created_at")
       ).withColumn("row_create_ts", current_timestamp) //Will tell us when the record got entered into Hadoop!
-        .coalesce(1)
-        .write
-        .mode("append")
-        .avro(spanHistory)
+       .withColumn("year", year($"span_created_at"))
+       .withColumn("month", month($"span_created_at")) //lpad(month($"span_created_at"), 2, "0")) => 08
+       .coalesce(1)
+       .write.partitionBy("year", "month")
+       .mode("append")
+       .avro(spanHistory)
 
-      // If there is no new message on a partition, then no message from that partition will be consumed.
-      // This will cause that partition to be skipped while writing the new offset file.
-      // So use the partition details from the current offsets file while creating new offsets.
-      implicit val formats = org.json4s.DefaultFormats
-      val oldOffsets = parse(offsets).extract[Map[String, Any]]
-        .get(factSpanTopic)
-        .getOrElse(Map("0" -> -999))
-        .asInstanceOf[Map[String, BigInt]]
-        .toSeq.toDF("partitionString", "offsetBigInt")
-        .withColumn("topic", lit(factSpanTopic))
-        .select($"topic",
-          $"partitionString".cast(IntegerType).alias("partition"),
-          $"offsetBigInt".cast(LongType).alias("offset"))
 
-      val newOffsets = spanEvents.select($"topic", $"partition", $"offset")
-        .union(oldOffsets)
-        .groupBy($"topic", $"partition")
-        .max("offset")
-        .select($"topic", $"partition", $"max(offset)" as "offset")
-        .flatMap(rec => Map(rec.getAs[String]("topic") -> Map(rec.getAs[Int]("partition") -> (rec.getAs[Long]("offset") + 1))))
-        .collect
+     // If there is no new message on a partition, then no message from that partition will be consumed.
+     // This will cause that partition to be skipped while writing the new offset file.
+     // So use the partition details from the current offsets file while creating new offsets.
+     implicit val formats = org.json4s.DefaultFormats
+     val oldOffsets = parse(offsets).extract[Map[String, Any]]
+       .get(factSpanTopic)
+       .getOrElse(Map("0" -> -999))
+       .asInstanceOf[Map[String, BigInt]]
+       .toSeq.toDF("partitionString", "offsetBigInt")
+       .withColumn("topic", lit(factSpanTopic))
+       .select($"topic",
+         $"partitionString".cast(IntegerType).alias("partition"),
+         $"offsetBigInt".cast(LongType).alias("offset"))
 
-      storeOffsets(newOffsets)
+     val newOffsets = spanEvents.select($"topic", $"partition", $"offset")
+       .union(oldOffsets)
+       .groupBy($"topic", $"partition")
+       .max("offset")
+       .select($"topic", $"partition", $"max(offset)" as "offset")
+       .flatMap(rec => Map(rec.getAs[String]("topic") -> Map(rec.getAs[Int]("partition") -> (rec.getAs[Long]("offset") + 1))))
+       .collect
+
+     storeOffsets(newOffsets)
     } else {
       logger.info("No new events present on the topic after the provided offsets.")
       System.exit(101)
@@ -244,17 +247,15 @@ object GenerateFactSpanStats {
 
     logger.debug("Generating the stats from the historical data....")
     import org.apache.spark.sql.functions._
-
-
-    import spark.sqlContext.implicits._
+    //import spark.sqlContext.implicits._
     val iWinIntSeconds = config.getProperty("vision.kafka.factSpanWindowInterval")
     val errorThresholds = spanData
       .withColumn("errors", when($"error_occurred" === true, 1).otherwise(0))
-      .groupBy($"endpoint_id", window((col("span_created_at").cast("long")/1000).cast(TimestampType), iWinIntSeconds+" seconds"))
+      .groupBy($"endpoint_id", window((col("span_created_at").cast(LongType)/1000).cast(TimestampType), iWinIntSeconds+" seconds"))
       .agg( avg("errors").multiply(100).alias("err_pct") )
       .groupBy($"endpoint_id")
       .agg( avg($"err_pct").as("err_mean"), stddev_pop($"err_pct").as("err_stddev") )
-    //.filter($"err_stddev" =!= 0)
+      //.filter($"err_stddev" =!= 0)
 
     val appThresholds = spanData
       .filter($"error_occurred" === false)

@@ -147,6 +147,34 @@ object GenerateFactSpanStats {
       .filter($"event" =!= "")
       .map(row => row.getAs[String]("event")))
 
+   /* //Option#2: manual conversion instead of above (sqlContext.read.json)
+       val eventJson = 
+      spanEvents
+        .filter($"event" =!= "")
+        .map(rec => {
+          val offset = rec.getAs[Long]("offset")
+          val partition = rec.getAs[Int]("partition")
+          var event: GenericRecord = null
+          try{
+            event =  valueDeserializer.deserialize(factSpanTopic, rec.getAs[Array[Byte]]("value"), statsSchema).asInstanceOf[GenericRecord]
+            (event.get("endpoint_id").asInstanceOf[Integer],
+              event.get("duration").asInstanceOf[Integer],
+              event.get("error_occurred").asInstanceOf[Boolean],
+              event.get("span_created_at").asInstanceOf[Long])
+            //For Not to deserialize
+            //event = rec.getAs[Array[Byte]]("value").toString()
+          } catch {
+            case e: Exception =>
+              logger.error("Error occurred while deserializing the message at partition: " + partition + ", offset: " + offset)
+              logger.error(e.getMessage)
+              (new Integer(-1), new Integer(0), false, 0L) //Events
+          }
+        }
+        ).toDF("endpoint_id", "duration", "error_occurred", "span_created_at")
+      .filter($"endpoint_id" > 0)
+   
+   */
+   
     val spanHistory = config.getProperty("vision.factSpan.rawDataLocation")
 
     if (eventJson.head(1).length > 0) {

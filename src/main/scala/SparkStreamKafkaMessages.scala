@@ -1,12 +1,14 @@
 /**
   * Created by kiran on 2/6/17.
   * Description:
-  *   The program gives a report of total sale quantity per a time period & product
-  * Input/Source data format: (txn_no,txn_dt,mem_num,store_id,sku_id,qty,paid): 1000000003,2017-06-01 08:00:00,1345671,S876,4685,2,3.98
-  * Output/Report: txn_dt, sku_id, qty_total
-  *   2017-06-01 08:00:00,3245,2
-  *   2017-06-01 08:00:00,4685,7
-  *
+  *   The program reads messages from Kafka
+  * Input/Source data format: Send a message in any format
+  * Output/Report: 
+  * +------+---------+------+----+-------------+-----------------------+
+  * |topic |partition|offset|key |value        |timestamp_2            |
+  * +------+---------+------+----+-------------+-----------------------+
+  * |kmtxns|3        |0     |null|hello message|2016-11-15 19:18:03.455|
+  * +------+---------+------+----+-------------+-----------------------+
   * Steps:
   * 1. Start zookeeper service
   * 2. Start kafka broker(server) at port 9092 ($KAFHA_HOME/config/server.properties)

@@ -1,11 +1,9 @@
 /**
   * Created by kiran on 2/6/17.
   * Description:
-  *   The program gives a report of total sale quantity per a time period & product
-  * Input/Source data format: (txn_no,txn_dt,mem_num,store_id,sku_id,qty,paid): 1000000003,2017-06-01 08:00:00,1345671,S876,4685,2,3.98
-  * Output/Report: txn_dt, sku_id, qty_total
-  *   2017-06-01 08:00:00,3245,2
-  *   2017-06-01 08:00:00,4685,7
+  *   The program Converts JSON message to dataframe
+  * Input/Source data format: {"id": 1, "name": "scott" }
+  * Output/Report: Any JSON would be read as dataframe
   *
   * Steps:
   * 1. Start zookeeper service

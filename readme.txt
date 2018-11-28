@@ -1,5 +1,10 @@
 ---- IntelliJ setup----------------
 
+During project setup:
+Could not reserve enough space for 1572864KB object heap
+-Noticed with 32-bit JDK
+
+
 --Add IntelliJ for Secured cluster (Kerberos)
 #File>Settings
 --Build, Execute, Deployment > Build Tools> SBT

@@ -34,7 +34,7 @@ val sqlContext = spark.sqlContext
     //This withColumn("a.b.c") is considering as a new column, but selects the correct column
     //lines2.withColumn("a.b.c", lines2("a.b.c")).show()
 
-    println("After changing column type...")
+    println("Changing column type...(key3_1 String->float)")
     val nestedCol = lines1.withColumn("id", lines1("id").cast(IntegerType)).//Can use cast("int")
       withColumn("nested_col", struct(lines1("nested_col.key1").cast(FloatType).as("key1"),
                                        lines1("nested_col.key2"),
@@ -45,7 +45,8 @@ val sqlContext = spark.sqlContext
     nestedCol.printSchema()
     //nestedCol.show(20)
 
-    val lines2 = spark.read.json("/home/kiran/km/km_hadoop/data/data_nested_struct_col2.json")
+    println("*** Sub-nesting.. ")
+    val lines2 = spark.read.json("/home/kiran/km/km_big_data/data/data_nested_struct_col2.json")
     //data: {"a": {"b": {"c": "1.31", "d": "1.11"}}, "TimeStamp": "2017-02-18", "id":1}
     lines2.show(false)
     lines2.printSchema()
@@ -58,21 +59,30 @@ val sqlContext = spark.sqlContext
                 .withColumn("TimeStamp", lines2("TimeStamp").cast(DateType))
 */
 
+    println("*** extract a nested element to separate column & Changing columntype of sub-branch..")
   //We can't reference child column directly to update **EXPLORE**
-    val df2 = lines2.withColumn("'a'.'b'.'c'",
-        lines2("'a'.'b'.'c'").cast(DoubleType).as("c")
-      )
+    val df2 = lines2.withColumn("c_extracted",
+        lines2("a.b.c").cast(DoubleType)
+      ).withColumn("d_extracted", (col("a.b.d")))
 
     df2.printSchema()
-    //df2.show(false)
+    df2.show(false)
 
-
+    println("*** writing json..")
+    //{"id":1,"c":{"c0":"1.31"},"d":{"d0":"1.11"}}
+    val writeJSON = df2.select(col("id"),
+      struct(df2("a.b.c").as("c0") ) as("c"),
+      struct(df2("a.b.d").as("d0") ) as("d")
+    )
+    import org.apache.spark.sql.SaveMode
+    writeJSON.write.mode(SaveMode.Overwrite).json("/home/kiran/km/km_big_data/data/data_spark_write/")
     //df2.createOrReplaceTempView("test")
     //val df3 = sqlContext.sql("describe test")
     //df3.show(false)
 
     //Flatten structure
-    val lines3 = spark.read.json("/home/kiran/km/km_hadoop/data/data_nested_struct_col3.json")
+    val lines3 = spark.read.json("/home/kiran/km/km_big_data/data/data_nested_struct_col3.json")
+    //{"field1": "f1.1", "field2": {"b": [{"c": "1.31", "d": "1.11"}, {"c2": "1.31", "d2": "1.11"}]}, "field3": "f3.1"}
     lines3.printSchema()
 
     //val df3 = lines3.select(flattenSchema(lines3.schema):_*)
@@ -80,6 +90,9 @@ val sqlContext = spark.sqlContext
       //.drop("field2")
     //df3.printSchema()
     //df3.show()
+
+
+
   }
   def flattenSchema(schema: StructType, prefix: String = null) : Array[Column] = {
     schema.fields.flatMap(f => {

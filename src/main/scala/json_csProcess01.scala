@@ -155,6 +155,7 @@ object json_csProcess01 {
     spark.sql(s"insert into table $sDBName.cs_logs select '$run_time_ts','cs','002_03','cs_request_audience',0,'Inserted Request Audiences'")
 
     //-------------004: cs_audience--------------
+    /*
     val req_aud_km = df_cs_request_audience.map(rec => (rec.getString(4), (rec.getString(0), rec.getString(3)))).rdd.groupByKey.mapValues(_.toList).collectAsMap
     for ((fileName, fileInfo) <- req_aud_km)
     {
@@ -176,7 +177,26 @@ object json_csProcess01 {
         println(getDTFormat() + s": Inserted ${fileName} in ${sDBName}.cs_audience");
         //spark.sql(s"INSERT INTO TABLE $sDBName.cs_logs SELECT '$run_time_ts','cs','002_04','cs_audience',0,'Inserted Audience data file: $fileName; RowCount:" + df_audience.count + "'")
       }
-    }
+    }*/
+    def funFileName: ((String) => String) = { (s) =>(s.split("/").last)}
+    import org.apache.spark.sql.functions.udf
+    val udfFileName = udf(funFileName)
+
+    var df_audience_data=spark.read.csv(inputHDFSPath+ "/incoming/*.gz").toDF("cs_sha").withColumn("uri", udfFileName(input_file_name()))
+
+    val df_audience=df_cs_request_audience.select("uri","request_id","audience_id").
+      join(df_audience_data, Seq("uri")).
+      select($"request_id"
+        , lit(proc_st_ts).as("process_ts")
+        , lit(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new java.util.Date())).as("create_ts")
+        , $"audience_id", $"cs_sha", lit("").as("impression_window")
+      )
+    df_audience.createOrReplaceTempView("df_audience");
+    println(getDTFormat() + s": --> ${sDBName}.cs_audience")
+    spark.sql(s"INSERT into $sDBName.cs_audience partition (process_date='" + (java.time.LocalDate.now) + s"') SELECT * from df_audience");
+    println(getDTFormat() + s": Inserted in ${sDBName}.cs_audience");
+
+    run_time_ts = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new java.util.Date())
     spark.sql(s"INSERT INTO TABLE $sDBName.cs_logs SELECT '$run_time_ts','cs','002_04','cs_audience',0,'Inserted Audience datas'")
 
     //------------Populate output data

@@ -26,12 +26,8 @@ object json_csProcess01 {
     val inputHDFSPath = args(1);
     println(getDTFormat() + ": ***** arg(1): " + inputHDFSPath);
 
-    //val conf = new SparkConf()
-    //.setMaster("yarn") //yarn
-    //.setAppName("KM CS")
-
     val spark = SparkSession.builder
-      .appName("Commerce Signals")
+      .appName("CS Process JSON")
       .master("yarn")
       .enableHiveSupport()
       .getOrCreate()
@@ -41,10 +37,11 @@ object json_csProcess01 {
     spark.sparkContext.setLogLevel("ERROR")
 
     import org.apache.spark.sql.functions._
-    //import spark.implicits._
     import sys.process._
-
     import spark.implicits._
+
+    //spark.sql("show databases").show(false)
+    //spark.conf.getAll.foreach(println)
 
     val proc_st_ts = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new java.util.Date())
 
@@ -111,12 +108,12 @@ object json_csProcess01 {
     spark.sql(s"insert into table $sDBName.cs_logs select '$run_time_ts','cs','002_02','cs_request_merchant',0,'Inserted Request Merchants'")
 
     //-------------003: cs_request_audience--------------
-    val df_cs_request_audience_exp = csReq.select($"requestid".as("request_id"), explode($"audiences").as("audiences")).
-      withColumn("request_id", $"request_id").
-      withColumn("audience_id", $"audiences.id").
-      withColumn("uri", $"audiences.uri").
-      withColumn("source", $"audiences.source").
-      withColumn("count", $"audiences.count")
+    val df_cs_request_audience_exp = csReq.select($"requestid".as("request_id"), explode($"audiences").as("audiences")) //.
+      //withColumn("request_id", $"request_id").
+      //withColumn("audience_id", $"audiences.id").
+      //withColumn("uri", $"audiences.uri").
+      //withColumn("source", $"audiences.source").
+      //withColumn("count", $"audiences.count")
 
     csReqColumns = df_cs_request_audience_exp.columns
     if (csReqColumns.contains("_corrupt_record")) {
@@ -125,7 +122,10 @@ object json_csProcess01 {
       spark.sql(s"insert into table $sDBName.cs_logs select '$run_time_ts','cs','002_03','cs_request_audience',1,'Corrupt JSON data file'")
       System.exit(102)
     }
-    val df_cs_request_audience = df_cs_request_audience_exp.select($"request_id", lit(proc_st_ts).as("process_ts"),lit(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new java.util.Date())).as("create_ts"), $"audience_id", $"uri", $"source", $"count")
+    //val df_cs_request_audience = df_cs_request_audience_exp.select($"request_id", lit(proc_st_ts).as("process_ts"),lit(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new java.util.Date())).as("create_ts"), $"audience_id", $"uri", $"source", $"count")
+    val df_cs_request_audience = df_cs_request_audience_exp.select($"request_id",
+      lit(proc_st_ts).as("process_ts"),lit(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new java.util.Date())).as("create_ts"),
+      $"audiences.id".as("audience_id"), $"audiences.uri", $"audiences.source", $"audiences.count")
     println(getDTFormat() + s": --> ${sDBName}.cs_request_audience")
     df_cs_request_audience.coalesce(1).write.insertInto(sDBName+".cs_request_audience")
     run_time_ts = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new java.util.Date())
@@ -165,10 +165,11 @@ object json_csProcess01 {
     import org.apache.spark.sql.functions.udf
     val udfFileName = udf(funFileName)
 
-    var df_audience_data=spark.read.csv(inputHDFSPath+ "/incoming/*.gz").toDF("cs_sha").withColumn("uri", udfFileName(input_file_name()))
-
-    val df_audience=df_cs_request_audience.select("uri","request_id","audience_id").
-      join(df_audience_data, Seq("uri")).
+    //var df_audience_data=spark.read.csv(inputHDFSPath+ "/incoming/*.gz").toDF("cs_sha").withColumn("uri", udfFileName(input_file_name()))
+    var df_audience_data=spark.read.csv(inputHDFSPath+ "/incoming/*.gz").toDF("cs_sha").withColumn("uri", udfFileName(input_file_name())).
+      join(df_cs_request_audience, Seq("uri"), "left_outer")
+    df_audience_data.cache()
+    val df_audience=df_audience_data.   // df_cs_request_audience.select("uri","request_id","audience_id").join(df_audience_data, Seq("uri")).
       select($"request_id"
         , lit(proc_st_ts).as("process_ts")
         , lit(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new java.util.Date())).as("create_ts")
@@ -183,22 +184,22 @@ object json_csProcess01 {
     spark.sql(s"INSERT INTO TABLE $sDBName.cs_logs SELECT '$run_time_ts','cs','002_04','cs_audience',0,'Inserted Audience data'")
 
     //--- Create Aud summary file - START
-    val df_audience_files=df_cs_request_audience.select("uri","request_id","audience_id").
-      join(df_audience_data, Seq("uri"), "left_outer").
-      select($"request_id",$"cs_sha", $"uri"  )
+    df_audience_data.createOrReplaceTempView("df_audience_data")
+    //val df_audience_files=df_cs_request_audience.select("uri","request_id").join(df_audience_data, Seq("uri"), "left_outer").
+    //  select($"request_id",$"cs_sha", $"uri"  ).groupBy("request_id","uri").agg(sum(when($"cs_sha".isNull,0).otherwise(1)).alias("aud_count"))
 
-    import sys.process._
     var sCurrDt = new java.text.SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new java.util.Date())
-    df_audience_files.groupBy("request_id","uri").agg(sum(when($"cs_sha".isNull,0).otherwise(1)).alias("aud_count")).filter($"aud_count" === 0).
-      coalesce(1).write.csv(s"${inputHDFSPath}/outgoing/${sCurrDt}")
+    //df_audience_files.filter($"aud_count" === 0).
+    spark.sql("SELECT request_id,uri,count(request_id) AS aud_count FROM df_audience_data WHERE request_id IS NULL GROUP BY request_id,uri").
+      coalesce(1).write.options(Map("header"->"True")).csv(s"${inputHDFSPath}/outgoing/${sCurrDt}")
     s"hdfs dfs -mv ${inputHDFSPath}/outgoing/${sCurrDt}/*.csv ${inputHDFSPath}/outgoing/cs_aud_data_miss_${sCurrDt}.csv".!
     println(getDTFormat() + s": --> Audience Summary file: ${inputHDFSPath}/outgoing/cs_aud_summary_${sCurrDt}.csv")
     s"hdfs dfs -rm -R $inputHDFSPath/outgoing/$sCurrDt".!
 
     sCurrDt = new java.text.SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new java.util.Date())
-
-    df_audience_files.groupBy("request_id","uri").agg(sum(when($"cs_sha".isNull,0).otherwise(1)).alias("aud_count")).
-      coalesce(1).write.csv(s"${inputHDFSPath}/outgoing/${sCurrDt}")
+    //df_audience_files.
+    spark.sql("SELECT request_id,uri,count(request_id) AS aud_count FROM df_audience_data GROUP BY request_id,uri").
+      coalesce(1).write.options(Map("header"->"True")).csv(s"${inputHDFSPath}/outgoing/${sCurrDt}")
     s"hdfs dfs -mv ${inputHDFSPath}/outgoing/${sCurrDt}/*.csv ${inputHDFSPath}/outgoing/cs_aud_summary_${sCurrDt}.csv".!
     println(getDTFormat() + s": --> Audience Summary file: ${inputHDFSPath}/outgoing/cs_aud_summary_${sCurrDt}.csv")
     s"hdfs dfs -rm -R $inputHDFSPath/outgoing/$sCurrDt".!

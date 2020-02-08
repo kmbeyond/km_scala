@@ -9,14 +9,14 @@ object SparkDFAggregates {
 
     val spark = SparkSession
       .builder()
-      .config("spark.sql.warehouse.dir", "file:///c:/tmp/spark-warehouse")
+      //.config("spark.sql.warehouse.dir", "file:///c:/tmp/spark-warehouse")
       .master("local")
       .appName("DF Aggregates")
       .getOrCreate
 
     spark.conf.set("spark.executor.memory", "2g")
     val sc = spark.sparkContext
-    sc.setLogLevel("INFO")
+    sc.setLogLevel("ERROR")
 
     //val data = sc.textFile("/home/kiran/km/km_hadoop/data/data_customers", 10)
 
@@ -35,7 +35,7 @@ object SparkDFAggregates {
       //.sum("error")
       .agg(
         count("*").alias("err_count"),
-        sum("error"), //.alias("err_total"),
+        sum("error").alias("err_sum"),
         mean("error").alias("err_mean"),
         mean("error").multiply(100).alias("err_percentage")
     )

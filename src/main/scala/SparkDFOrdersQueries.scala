@@ -8,7 +8,7 @@ import org.apache.spark.sql.hive.HiveContext
   -Option#2: Set config parameters in SparkSession --- TRIED BUT NOT WORKING---
 
  */
-object SparkReadHiveData {
+object SparkDFOrdersQueries {
 
   def main(args: Array[String]) {
 
@@ -26,7 +26,7 @@ object SparkReadHiveData {
       //.config("spark.yarn.jars", "hdfs://192.168.31.14:8020/user/talentorigin/jars/*.jar")
       //.config("spark.hadoop.yarn.resourcemanager.address", "192.168.31.14:8032")
       .master("local")
-      .appName("Spark Hive connection")
+      .appName("Spark Orders")
       .enableHiveSupport()
       .getOrCreate
 

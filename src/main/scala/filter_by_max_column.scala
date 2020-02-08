@@ -14,16 +14,16 @@ object filter_by_max_column {
     val spark = SparkSession
       .builder()
       .master("local")
-      .appName("KM Spark Session")
+      .appName("KM Spark")
       .enableHiveSupport()
       .getOrCreate
 
     spark.sparkContext.setLogLevel("ERROR")
 
-    import spark.sqlContext.implicits._
+    //import spark.sqlContext.implicits._   //NOT USE if using spark.implicits._
     import spark.implicits._
 
-    val dataDF = Seq(("v1", "2019-01-01"), ("v2", "2019-01-02"), ("v1", "2019-01-02")).
+    val dataDF = List(("v1", "2019-01-01"), ("v2", "2019-01-02"), ("v1", "2019-01-02")).
       toDF("val", "extract_date")
 
 
@@ -31,10 +31,11 @@ object filter_by_max_column {
     import org.apache.spark.sql.functions.{add_months, date_add, _}
     import org.apache.spark.sql.expressions.Window
 
-    val win_extract_date = Window.partitionBy("extract_date")
+    val win_extract_date = Window.partitionBy("blank_col")
 
     dataDF.
-      filter($"extract_date".gt(date_add(current_date,-7))).
+      //filter($"extract_date".gt(date_add(current_date,-7))).
+      withColumn("blank_col", lit("")).
       withColumn("max_extract_date", max($"extract_date").over(win_extract_date)).
       filter($"extract_date" === $"max_extract_date").
       show(false)

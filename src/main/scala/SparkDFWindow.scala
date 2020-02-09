@@ -16,22 +16,22 @@ object SparkDFWindow {
       .appName("DF Window")
       .getOrCreate
 
-    spark.conf.set("spark.executor.memory", "2g")
+    //spark.conf.set("spark.executor.memory", "2g")
     val sc = spark.sparkContext
     sc.setLogLevel("ERROR")
 
-    //val data = sc.textFile("/home/kiran/km/km_hadoop/data/data_customers", 10)
+    //val dataPath = "file:///C://km//events//data//data//sample_events.csv"
+    val dataPath = "/home/kiran/km/km_big_data/data/sample_events.csv"
 
     val dataDF = spark.read
       .format("csv")
       .option("header", "true") //reading the headers
       .option("mode", "DROPMALFORMED")
-      .load("file:///C://km//vision//data//data//sample_events.csv")
+      .load(dataPath)
 
     //dataDF.printSchema()
     //dataDF.show()
 
-    //import org.apache.spark.sql.functions.window
     import org.apache.spark.sql.functions._
     import spark.sqlContext.implicits._
 
@@ -57,7 +57,7 @@ object SparkDFWindow {
 
     //Average by cust_id & time window (instead of getting avg in whole dataset)
     val dataAggTime = dataDF2
-      .groupBy($"cust_id", window($"txn_ts_DT", "120 seconds"))
+      .groupBy($"cust_id", window($"txn_ts_DT", "10 seconds"))
       .agg(
         count("*").alias("txns_count")
         //,sum("qty").alias("qty_total")
@@ -65,7 +65,7 @@ object SparkDFWindow {
         ,sum("disc").alias("disc_total")
         ,avg("disc").multiply(100).alias("disc_avg")
     )
-    dataAggTime.show(false)
+    dataAggTime.orderBy("window", "cust_id").show(false)
 
     //Average by cust_id
     val dataAgg = dataAggTime
@@ -85,7 +85,7 @@ object SparkDFWindow {
 /*
 //data
 
-C://km//vision//data//data//sample_events.csv
+C://km//events//data//data//sample_events.csv
 
 txn_id,txn_ts,cust_id,item_id,qty,disc_applied
 100001,1532547080843,222,25346,2,true

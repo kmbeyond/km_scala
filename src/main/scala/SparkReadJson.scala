@@ -13,19 +13,17 @@ object SparkReadJson {
 
     val spark = SparkSession
       .builder()
-      .config("spark.sql.warehouse.dir", "file:///c:/tmp/spark-warehouse")
+      //.config("spark.sql.warehouse.dir", "file:///c:/tmp/spark-warehouse")
       .config("spark.executor.memory", "2g")
       .config("spark.yarn.executor.memoryOverhead", "10g")
       .master("local")
-      .appName("Spark DF")
+      .appName("Spark Read JSON")
       .getOrCreate
 
-    //spark.conf.set("spark.executor.memory", "2g")
+    spark.sparkContext.setLogLevel("ERROR")
 
-    val sc = spark.sparkContext
-    sc.setLogLevel("ERROR")
-
-    val sJSONPath = "file:///C://km//avro//sample_avro_data_as_json.json"
+    //val sJSONPath = "file:///C://km//avro//sample_avro_data_as_json.json"
+    val sJSONPath = "/home/kiran/km/km_big_data/data/client_perform_check.json"
     //Sample data:
     //{"performCheck" : "N", "clientTag" :{"key":"111"}, "contactPoint": {"email":"abc@gmail.com", "type":"EML"}}
     //{"performCheck" : "N", "clientTag" :{"key":"222"}, "contactPoint": {"email":"def@gmail.com", "type":"EML"}}
@@ -38,8 +36,8 @@ object SparkReadJson {
     ds.show(false)
 
     val ds2 = ds.withColumn("key", $"clientTag.key")
-      .withColumn("contact_type", ds.col("contactPoint")("type"))
-      .withColumn("contact_email", ds.col("contactPoint.email"))
+      .withColumn("contact_type", ds.col("contactPoint")("type"))  //object notation
+      .withColumn("contact_email", ds.col("contactPoint.email"))  //dot notation
       //.drop("contactPoint")
       //.drop("clientTag")
       .withColumn("contactPoint.valid", when(ds.col("contactPoint.email").contains("@") === true, "Y").otherwise("N"))
